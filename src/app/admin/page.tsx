@@ -178,7 +178,7 @@ export default function AdminPage() {
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           {(['all','pending','processing','completed','rejected','cancelled'] as const).map(f => (
             <button key={f} onClick={() => setFilter(f)} style={{
-              padding: '6px 14px', borderRadius: 20, border: 'none', cursor: 'pointer',
+              padding: '6px 14px', borderRadius: 20, cursor: 'pointer',
               fontSize: 11, fontWeight: 600, textTransform: 'capitalize',
               background: filter === f ? 'rgba(34,197,94,0.15)' : 'rgba(255,255,255,0.04)',
               color: filter === f ? '#22c55e' : 'var(--muted)',
