@@ -181,7 +181,7 @@ export default function AdminPage() {
               padding: '6px 14px', borderRadius: 20, cursor: 'pointer',
               fontSize: 11, fontWeight: 600, textTransform: 'capitalize',
               background: filter === f ? 'rgba(34,197,94,0.15)' : 'rgba(255,255,255,0.04)',
-              color: filter === f ? '#22c55e' : 'var(--muted)',
+              color: filter === f ? '#1ece5f' : 'var(--muted)',
               borderColor: filter === f ? 'rgba(34,197,94,0.3)' : 'rgba(255,255,255,0.06)',
               borderWidth: 1,
               borderStyle: 'solid',
