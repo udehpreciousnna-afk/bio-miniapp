@@ -418,8 +418,8 @@ export default function Home() {
                               ['Amount', `${fmtBio(w.bio_amount)} BIO`],
                               ['Submitted', fmtDate(w.submitted_at)],
                               w.processed_at ? ['Processed', fmtDate(w.processed_at)] : null,
-                            ].filter(Boolean).map(([label, value]) => (
-                              <div key={label as string} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+                            ].filter((row): row is string[] => row !== null).map(([label, value]) => (
+                              <div key={label} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
                                 <span style={{ color: 'var(--muted)' }}>{label}</span>
                                 <span style={{ color: 'var(--text)', fontFamily: 'monospace', fontSize: 11 }}>{value}</span>
                               </div>
@@ -471,13 +471,13 @@ function ActionBtn({ icon, label, onClick, primary }: {
       onClick={onClick}
       style={{
         display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
-        padding: '18px 12px', borderRadius: 20, border: 'none', cursor: 'pointer',
+        padding: '18px 12px', borderRadius: 20, cursor: 'pointer',
         transition: 'all 0.15s',
         background: primary
           ? 'linear-gradient(135deg, #0f3d1f, #1a5c2a)'
           : 'linear-gradient(145deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01))',
         boxShadow: primary ? '0 4px 20px rgba(34,197,94,0.15)' : 'none',
-        border: primary ? '1px solid rgba(34,197,94,0.25)' : '1px solid rgba(255,255,255,0.08)',
+        border: `1px solid ${primary ? 'rgba(34,197,94,0.25)' : 'rgba(255,255,255,0.08)'}`,
         color: primary ? '#4ade80' : '#f0fdf4',
         fontSize: 13, fontWeight: 600,
       }}

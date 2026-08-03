@@ -182,7 +182,9 @@ export default function AdminPage() {
               fontSize: 11, fontWeight: 600, textTransform: 'capitalize',
               background: filter === f ? 'rgba(34,197,94,0.15)' : 'rgba(255,255,255,0.04)',
               color: filter === f ? '#22c55e' : 'var(--muted)',
-              border: `1px solid ${filter === f ? 'rgba(34,197,94,0.3)' : 'rgba(255,255,255,0.06)'}`,
+              borderColor: filter === f ? 'rgba(34,197,94,0.3)' : 'rgba(255,255,255,0.06)',
+              borderWidth: 1,
+              borderStyle: 'solid',
             }}>
               {f} {f !== 'all' ? `(${withdrawals.filter(w=>w.status===f).length})` : ''}
             </button>

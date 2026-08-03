@@ -219,7 +219,7 @@ export function DepositSheet({ open, onClose, user }: Props) {
                     <button
                       onClick={copyAddr}
                       style={{
-                        width: '100%', padding: '12px', borderRadius: 14, border: 'none', cursor: 'pointer',
+                        width: '100%', padding: '12px', borderRadius: 14, cursor: 'pointer',
                         background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.25)',
                         color: '#4ade80', fontSize: 13, fontWeight: 600,
                         display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
