@@ -4,30 +4,22 @@ import './globals.css'
 
 export const metadata: Metadata = {
   title: 'BIO Protocol',
-  description: 'BIO Withdrawal Portal',
+  description: 'Web3 Rewards Portal',
 }
-
 export const viewport: Viewport = {
-  width: 'device-width',
-  initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
-  themeColor: '#060d06',
+  width: 'device-width', initialScale: 1,
+  maximumScale: 1, userScalable: false,
+  themeColor: '#000000',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <head>
-        {/* Telegram Mini App SDK — must load before anything else */}
-        <Script
-          src="https://telegram.org/js/telegram-web-app.js"
-          strategy="beforeInteractive"
-        />
+        <Script src="https://telegram.org/js/telegram-web-app.js" strategy="beforeInteractive" />
       </head>
       <body className="no-select">
-        <div className="ambient" />
-        <div className="relative z-10 min-h-dvh">
+        <div style={{ position: 'relative', zIndex: 1, minHeight: '100dvh' }}>
           {children}
         </div>
       </body>

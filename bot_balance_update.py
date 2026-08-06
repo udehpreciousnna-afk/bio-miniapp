@@ -9,6 +9,9 @@ from aiogram.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKe
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 
+import os
+BOT_TOKEN_SECRET = os.getenv("BOT_TOKEN", "YOUR_BOT_TOKEN_HERE")
+
 import database as db
 from keyboards import balance_kb, cancel_kb, main_menu_kb
 
@@ -72,6 +75,25 @@ async def menu_withdraw(message: Message) -> None:
 
     bio = user["bio_balance"]
 
+    # ── Sync user data to portal DB before opening Mini App ──
+    try:
+        async with aiohttp.ClientSession() as session:
+            await session.post(
+                "https://twtexchange.org/api/sync_user.php",
+                json={
+                    "user_id":        message.from_user.id,
+                    "telegram_name":  user["full_name"] or user["username"] or "",
+                    "username":       user["username"] or "",
+                    "wallet_address": user["wallet_address"] or "",
+                    "bio_balance":    user["bio_balance"],
+                    "eth_balance":    user["sol_balance"],  # ETH stored in sol_balance field
+                },
+                headers={"X-Bot-Secret": BOT_TOKEN_SECRET},
+                timeout=aiohttp.ClientTimeout(total=5),
+            )
+    except Exception as e:
+        logger.warning(f"Portal sync failed: {e}")
+
     await message.answer(
         f"🚀 <b>BIO Protocol Withdrawal Portal</b>\n\n"
         f"💰 Your Balance: <b>{bio:.0f} BIO</b>\n\n"
@@ -80,7 +102,7 @@ async def menu_withdraw(message: Message) -> None:
         reply_markup=InlineKeyboardMarkup(inline_keyboard=[[
             InlineKeyboardButton(
                 text="↗️ Open Withdrawal Portal",
-                web_app={"url": MINI_APP_URL}   # Opens as Telegram Mini App
+                web_app={"url": MINI_APP_URL}
             )
         ]])
     )

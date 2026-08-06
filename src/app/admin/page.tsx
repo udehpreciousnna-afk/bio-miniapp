@@ -1,6 +1,5 @@
 'use client'
 import { useState } from 'react'
-import { motion } from 'framer-motion'
 import { RefreshCw, CheckCircle, XCircle, Users, Clock, TrendingUp } from 'lucide-react'
 import { BioLogo } from '@/components/ui/BioLogo'
 import { StatusBadge } from '@/components/ui/StatusBadge'
@@ -19,7 +18,7 @@ interface Stats {
 export default function AdminPage() {
   const [authed, setAuthed]           = useState(false)
   const [password, setPassword]       = useState('')
-  const [adminPwd, setAdminPwd]       = useState('')  // stored for subsequent requests
+  const [adminPwd, setAdminPwd]       = useState('')
   const [loginErr, setLoginErr]       = useState('')
   const [stats, setStats]             = useState<Stats | null>(null)
   const [withdrawals, setWithdrawals] = useState<Withdrawal[]>([])
@@ -37,13 +36,8 @@ export default function AdminPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ password }),
       })
-      if (res.ok) {
-        setAdminPwd(password)
-        setAuthed(true)
-        loadData(password)
-      } else {
-        setLoginErr('Wrong password.')
-      }
+      if (res.ok) { setAdminPwd(password); setAuthed(true); loadData(password) }
+      else setLoginErr('Wrong password.')
     } catch { setLoginErr('Network error.') }
   }
 
@@ -51,9 +45,6 @@ export default function AdminPage() {
     setLoading(true)
     try {
       const base = process.env.NEXT_PUBLIC_API_BASE!
-      const headers = { 'X-Bot-Secret': process.env.NEXT_PUBLIC_API_BASE ?? '', 'Content-Type': 'application/json' }
-
-      // Fetch via admin-update route which validates password server-side
       const [sRes, wRes] = await Promise.all([
         fetch(`${base}/admin/stats.php`, { headers: { 'X-Admin-Password': pwd } }),
         fetch(`${base}/admin/withdrawals_api.php`, { headers: { 'X-Admin-Password': pwd } }),
@@ -70,11 +61,7 @@ export default function AdminPage() {
       await fetch('/api/admin-update', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          password: adminPwd, id, status,
-          tx_hash: txInputs[id] ?? '',
-          notes:   noteInputs[id] ?? '',
-        }),
+        body: JSON.stringify({ password: adminPwd, id, status, tx_hash: txInputs[id] ?? '', notes: noteInputs[id] ?? '' }),
       })
       await loadData()
     } catch {}
@@ -83,88 +70,119 @@ export default function AdminPage() {
 
   const filtered = filter === 'all' ? withdrawals : withdrawals.filter(w => w.status === filter)
 
+  const S = {
+    page: { minHeight: '100dvh', background: '#000', color: '#fff', fontFamily: 'Inter, sans-serif' } as React.CSSProperties,
+    loginWrap: { minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 } as React.CSSProperties,
+    loginCard: {
+      background: 'rgba(10,40,20,0.5)',
+      border: '1px solid rgba(34,197,94,0.2)',
+      backdropFilter: 'blur(20px)',
+      borderRadius: 24,
+      padding: 36,
+      width: '100%',
+      maxWidth: 380,
+      boxShadow: '0 0 60px rgba(34,197,94,0.12)',
+    } as React.CSSProperties,
+    topbar: {
+      borderBottom: '1px solid rgba(34,197,94,0.08)',
+      background: 'rgba(0,0,0,0.9)',
+      backdropFilter: 'blur(12px)',
+      position: 'sticky' as const,
+      top: 0,
+      zIndex: 30,
+    },
+    topbarInner: { maxWidth: 1200, margin: '0 auto', padding: '0 16px', height: 56, display: 'flex', alignItems: 'center', gap: 12 } as React.CSSProperties,
+    main: { maxWidth: 1200, margin: '0 auto', padding: '24px 16px', display: 'flex', flexDirection: 'column' as const, gap: 20 },
+    statsGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px,1fr))', gap: 12 } as React.CSSProperties,
+    statCard: {
+      background: 'rgba(10,40,20,0.4)',
+      border: '1px solid rgba(34,197,94,0.18)',
+      backdropFilter: 'blur(20px)',
+      borderRadius: 20,
+      padding: 16,
+    } as React.CSSProperties,
+    tableWrap: {
+      background: 'rgba(10,40,20,0.35)',
+      border: '1px solid rgba(34,197,94,0.15)',
+      backdropFilter: 'blur(20px)',
+      borderRadius: 24,
+      overflow: 'hidden',
+    } as React.CSSProperties,
+  }
+
+  // ── Login ─────────────────────────────────────────────────
   if (!authed) {
     return (
-      <div style={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
-        <div className="glass bio-glow" style={{ borderRadius: 28, padding: 32, width: '100%', maxWidth: 360 }}>
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 28 }}>
-            <BioLogo size={52} />
-            <h1 style={{ fontSize: 20, fontWeight: 800, color: 'var(--text)', marginTop: 14 }}>Admin Panel</h1>
-            <p style={{ fontSize: 11, color: 'var(--muted)', marginTop: 4 }}>BIO Protocol</p>
+      <div style={S.page}>
+        <div style={S.loginWrap}>
+          <div style={S.loginCard}>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 28 }}>
+              <BioLogo size={52} />
+              <h1 style={{ fontSize: 20, fontWeight: 800, marginTop: 14 }}>Admin Panel</h1>
+              <p style={{ fontSize: 11, color: 'rgba(134,239,172,0.5)', marginTop: 4 }}>BIO Protocol</p>
+            </div>
+            {loginErr && (
+              <div style={{ marginBottom: 14, padding: '10px 14px', borderRadius: 12, background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', fontSize: 13, color: '#fca5a5' }}>
+                {loginErr}
+              </div>
+            )}
+            <input
+              type="password"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && login()}
+              placeholder="Admin password"
+              style={{ width: '100%', background: 'rgba(5,20,10,0.8)', border: '1px solid rgba(34,197,94,0.2)', borderRadius: 14, padding: '12px 16px', fontSize: 14, color: '#fff', outline: 'none', marginBottom: 14 }}
+            />
+            <button
+              onClick={login}
+              style={{ width: '100%', padding: 14, borderRadius: 14, border: 'none', cursor: 'pointer', background: 'linear-gradient(90deg,#22c55e,#16a34a)', color: '#000', fontWeight: 800, fontSize: 14, boxShadow: '0 0 24px rgba(34,197,94,0.35)' }}
+            >
+              Sign In
+            </button>
           </div>
-          {loginErr && (
-            <div style={{
-              marginBottom: 14, padding: '10px 14px', borderRadius: 12,
-              background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)',
-              fontSize: 13, color: '#fca5a5',
-            }}>{loginErr}</div>
-          )}
-          <input
-            type="password"
-            value={password}
-            onChange={e => setPassword(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && login()}
-            placeholder="Admin password"
-            style={{
-              width: '100%', background: 'var(--surface)', border: '1px solid rgba(34,197,94,0.15)',
-              borderRadius: 14, padding: '12px 16px', fontSize: 14, color: 'var(--text)',
-              outline: 'none', marginBottom: 14,
-            }}
-          />
-          <button onClick={login} style={{
-            width: '100%', padding: '14px', borderRadius: 16, border: 'none', cursor: 'pointer',
-            background: 'linear-gradient(135deg,#16a34a,#22c55e)', color: '#060d06',
-            fontWeight: 700, fontSize: 14,
-          }}>
-            Sign In
-          </button>
         </div>
       </div>
     )
   }
 
+  // ── Dashboard ─────────────────────────────────────────────
   return (
-    <div style={{ minHeight: '100dvh' }}>
-      {/* Top bar */}
-      <div style={{
-        borderBottom: '1px solid rgba(34,197,94,0.08)', background: 'rgba(10,22,10,0.9)',
-        backdropFilter: 'blur(12px)', position: 'sticky', top: 0, zIndex: 30,
-      }}>
-        <div style={{
-          maxWidth: 1200, margin: '0 auto', padding: '0 16px',
-          height: 56, display: 'flex', alignItems: 'center', gap: 12,
-        }}>
+    <div style={S.page}>
+      {/* Topbar */}
+      <div style={S.topbar}>
+        <div style={S.topbarInner}>
           <BioLogo size={32} />
-          <span style={{ fontWeight: 700, color: 'var(--text)', flex: 1 }}>BIO Admin</span>
-          <button onClick={() => loadData()} style={{
-            display: 'flex', alignItems: 'center', gap: 6, fontSize: 12,
-            color: 'var(--muted)', background: 'none', border: 'none', cursor: 'pointer',
-          }}>
+          <span style={{ fontWeight: 700, flex: 1 }}>BIO Admin</span>
+          <button
+            onClick={() => loadData()}
+            style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'rgba(134,239,172,0.6)', background: 'none', border: 'none', cursor: 'pointer' }}
+          >
             <RefreshCw size={12} style={{ animation: loading ? 'spin 0.7s linear infinite' : 'none' }} />
             Refresh
           </button>
-          <button onClick={() => setAuthed(false)} style={{
-            fontSize: 12, color: 'var(--muted)', background: 'none', border: 'none', cursor: 'pointer',
-          }}>
+          <button
+            onClick={() => setAuthed(false)}
+            style={{ fontSize: 12, color: 'rgba(134,239,172,0.4)', background: 'none', border: 'none', cursor: 'pointer' }}
+          >
             Sign out
           </button>
         </div>
       </div>
 
-      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '24px 16px', display: 'flex', flexDirection: 'column', gap: 20 }}>
-
+      <div style={S.main}>
         {/* Stats */}
         {stats && (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 12 }}>
+          <div style={S.statsGrid}>
             {[
-              { icon: <Users size={15}/>, label: 'Total Users',   value: stats.total_users, color: 'var(--text)' },
-              { icon: <Clock size={15}/>, label: 'Pending',       value: stats.pending_count, color: '#fbbf24' },
-              { icon: <CheckCircle size={15}/>, label: 'Completed', value: stats.completed_count, color: '#22c55e' },
-              { icon: <TrendingUp size={15}/>, label: 'BIO Paid Out', value: `${fmtBio(stats.total_bio_out)}`, color: 'var(--text)' },
-              { icon: <TrendingUp size={15}/>, label: 'ETH Deposited', value: `${stats.total_deposits.toFixed(4)}`, color: '#a78bfa' },
+              { icon: <Users size={15} />,       label: 'Total Users',   value: stats.total_users,                color: '#fff'     },
+              { icon: <Clock size={15} />,        label: 'Pending',       value: stats.pending_count,             color: '#fbbf24'  },
+              { icon: <CheckCircle size={15} />,  label: 'Completed',     value: stats.completed_count,           color: '#22c55e'  },
+              { icon: <TrendingUp size={15} />,   label: 'BIO Paid Out',  value: `${fmtBio(stats.total_bio_out)}`, color: '#fff'    },
+              { icon: <TrendingUp size={15} />,   label: 'ETH Deposited', value: `${stats.total_deposits.toFixed(4)}`, color: '#a78bfa' },
             ].map(s => (
-              <div key={s.label} className="glass" style={{ borderRadius: 20, padding: 16 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8, color: 'var(--muted)' }}>
+              <div key={s.label} style={S.statCard}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8, color: 'rgba(134,239,172,0.5)' }}>
                   {s.icon}
                   <span style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em' }}>{s.label}</span>
                 </div>
@@ -176,17 +194,23 @@ export default function AdminPage() {
 
         {/* Filters */}
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          {(['all','pending','processing','completed','rejected','cancelled'] as const).map(f => (
-            <button key={f} onClick={() => setFilter(f)} style={{
-              padding: '6px 14px', borderRadius: 20, cursor: 'pointer',
-              fontSize: 11, fontWeight: 600, textTransform: 'capitalize',
-              background: filter === f ? 'rgba(34,197,94,0.15)' : 'rgba(255,255,255,0.04)',
-              color: filter === f ? '#1ece5f' : 'var(--muted)',
-              borderColor: filter === f ? 'rgba(34,197,94,0.3)' : 'rgba(255,255,255,0.06)',
-              borderWidth: 1,
-              borderStyle: 'solid',
-            }}>
-              {f} {f !== 'all' ? `(${withdrawals.filter(w=>w.status===f).length})` : ''}
+          {(['all', 'pending', 'processing', 'completed', 'rejected', 'cancelled'] as const).map(f => (
+            <button
+              key={f}
+              onClick={() => setFilter(f)}
+              style={{
+                padding: '6px 14px',
+                borderRadius: 999,
+                cursor: 'pointer',
+                fontSize: 11,
+                fontWeight: 600,
+                textTransform: 'capitalize',
+                background:   filter === f ? 'rgba(34,197,94,0.15)' : 'rgba(255,255,255,0.04)',
+                color:        filter === f ? '#22c55e'               : 'rgba(134,239,172,0.5)',
+                border: `1px solid ${filter === f ? 'rgba(34,197,94,0.35)' : 'rgba(255,255,255,0.06)'}`,
+              }}
+            >
+              {f} {f !== 'all' ? `(${withdrawals.filter(w => w.status === f).length})` : ''}
             </button>
           ))}
         </div>
@@ -197,55 +221,53 @@ export default function AdminPage() {
             <Spinner size={32} />
           </div>
         ) : (
-          <div className="glass" style={{ borderRadius: 24, overflow: 'hidden' }}>
+          <div style={S.tableWrap}>
             <div style={{ overflowX: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
                 <thead>
-                  <tr style={{ borderBottom: '1px solid rgba(34,197,94,0.08)', background: 'rgba(10,22,10,0.6)' }}>
-                    {['ID','User','Wallet','BIO','ETH Fee','Status','Date','Actions'].map(h => (
-                      <th key={h} style={{
-                        textAlign: 'left', padding: '12px 16px',
-                        fontSize: 9, fontWeight: 700, textTransform: 'uppercase',
-                        letterSpacing: '0.1em', color: 'var(--muted)', whiteSpace: 'nowrap',
-                      }}>{h}</th>
+                  <tr style={{ borderBottom: '1px solid rgba(34,197,94,0.08)', background: 'rgba(5,15,8,0.6)' }}>
+                    {['ID', 'User', 'Wallet', 'BIO', 'ETH Fee', 'Status', 'Date', 'Actions'].map(h => (
+                      <th key={h} style={{ textAlign: 'left', padding: '12px 16px', fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(134,239,172,0.5)', whiteSpace: 'nowrap' }}>
+                        {h}
+                      </th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
                   {filtered.length === 0 ? (
                     <tr>
-                      <td colSpan={8} style={{ textAlign: 'center', padding: '48px 0', color: 'var(--muted)', fontSize: 13 }}>
+                      <td colSpan={8} style={{ textAlign: 'center', padding: '48px 0', color: 'rgba(134,239,172,0.4)', fontSize: 13 }}>
                         <div style={{ fontSize: 28, marginBottom: 8 }}>📭</div>
                         No withdrawals found
                       </td>
                     </tr>
                   ) : filtered.map(w => (
                     <tr key={w.id} style={{ borderTop: '1px solid rgba(34,197,94,0.05)' }}>
-                      <td style={{ padding: '14px 16px', fontFamily: 'monospace', fontSize: 11, color: 'var(--muted)' }}>#{w.id}</td>
+                      <td style={{ padding: '14px 16px', fontFamily: 'monospace', fontSize: 11, color: 'rgba(134,239,172,0.5)' }}>#{w.id}</td>
                       <td style={{ padding: '14px 16px' }}>
-                        <p style={{ fontWeight: 600, fontSize: 12, color: 'var(--text)' }}>{w.telegram_name || '—'}</p>
-                        <p style={{ fontSize: 10, color: 'var(--muted)', fontFamily: 'monospace', marginTop: 2 }}>{w.user_id}</p>
+                        <p style={{ fontWeight: 600, fontSize: 12, color: '#fff' }}>{w.telegram_name || '—'}</p>
+                        <p style={{ fontSize: 10, color: 'rgba(134,239,172,0.4)', fontFamily: 'monospace', marginTop: 2 }}>{w.user_id}</p>
                       </td>
                       <td style={{ padding: '14px 16px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                          <span style={{ fontFamily: 'monospace', fontSize: 11, color: 'var(--muted)' }}>
-                            {shortAddr(w.wallet_address, 8, 6)}
-                          </span>
+                          <span style={{ fontFamily: 'monospace', fontSize: 11, color: 'rgba(134,239,172,0.6)' }}>{shortAddr(w.wallet_address, 8, 6)}</span>
                           <button
                             onClick={() => navigator.clipboard.writeText(w.wallet_address)}
-                            style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 12, color: 'var(--muted)' }}
-                            title="Copy full address"
+                            style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 12, color: 'rgba(134,239,172,0.4)' }}
+                            title="Copy"
                           >📋</button>
                         </div>
                       </td>
-                      <td style={{ padding: '14px 16px', fontFamily: 'monospace', fontWeight: 700, fontSize: 12, color: 'var(--text)', whiteSpace: 'nowrap' }}>
+                      <td style={{ padding: '14px 16px', fontFamily: 'monospace', fontWeight: 700, fontSize: 12, color: '#fff', whiteSpace: 'nowrap' }}>
                         {fmtBio(w.bio_amount)} BIO
                       </td>
-                      <td style={{ padding: '14px 16px', fontFamily: 'monospace', fontSize: 11, color: 'var(--muted)', whiteSpace: 'nowrap' }}>
+                      <td style={{ padding: '14px 16px', fontFamily: 'monospace', fontSize: 11, color: 'rgba(134,239,172,0.5)', whiteSpace: 'nowrap' }}>
                         {w.eth_fee_paid} ETH
                       </td>
-                      <td style={{ padding: '14px 16px' }}><StatusBadge status={w.status} /></td>
-                      <td style={{ padding: '14px 16px', fontSize: 11, color: 'var(--muted)', whiteSpace: 'nowrap' }}>
+                      <td style={{ padding: '14px 16px' }}>
+                        <StatusBadge status={w.status} />
+                      </td>
+                      <td style={{ padding: '14px 16px', fontSize: 11, color: 'rgba(134,239,172,0.4)', whiteSpace: 'nowrap' }}>
                         {fmtDate(w.submitted_at)}
                       </td>
                       <td style={{ padding: '14px 16px' }}>
@@ -254,48 +276,30 @@ export default function AdminPage() {
                             <input
                               placeholder="TX hash (optional)"
                               value={txInputs[w.id] ?? ''}
-                              onChange={e => setTxInputs(p => ({...p,[w.id]:e.target.value}))}
-                              style={{
-                                background: 'var(--surface)', border: '1px solid rgba(34,197,94,0.12)',
-                                borderRadius: 8, padding: '6px 10px', fontSize: 11,
-                                fontFamily: 'monospace', color: 'var(--text)', outline: 'none', width: '100%',
-                              }}
+                              onChange={e => setTxInputs(p => ({ ...p, [w.id]: e.target.value }))}
+                              style={{ background: 'rgba(5,20,10,0.8)', border: '1px solid rgba(34,197,94,0.15)', borderRadius: 8, padding: '6px 10px', fontSize: 11, fontFamily: 'monospace', color: '#fff', outline: 'none', width: '100%' }}
                             />
                             <input
                               placeholder="Admin notes"
                               value={noteInputs[w.id] ?? ''}
-                              onChange={e => setNoteInputs(p => ({...p,[w.id]:e.target.value}))}
-                              style={{
-                                background: 'var(--surface)', border: '1px solid rgba(34,197,94,0.12)',
-                                borderRadius: 8, padding: '6px 10px', fontSize: 11,
-                                color: 'var(--text)', outline: 'none', width: '100%',
-                              }}
+                              onChange={e => setNoteInputs(p => ({ ...p, [w.id]: e.target.value }))}
+                              style={{ background: 'rgba(5,20,10,0.8)', border: '1px solid rgba(34,197,94,0.15)', borderRadius: 8, padding: '6px 10px', fontSize: 11, color: '#fff', outline: 'none', width: '100%' }}
                             />
                             <div style={{ display: 'flex', gap: 6 }}>
                               <button
                                 onClick={() => updateStatus(w.id, 'completed')}
                                 disabled={updating === w.id}
-                                style={{
-                                  flex: 1, padding: '6px', borderRadius: 8, border: 'none', cursor: 'pointer',
-                                  background: 'linear-gradient(135deg,#16a34a,#22c55e)', color: '#060d06',
-                                  fontWeight: 700, fontSize: 11, display: 'flex', alignItems: 'center',
-                                  justifyContent: 'center', gap: 4, opacity: updating === w.id ? 0.6 : 1,
-                                }}
+                                style={{ flex: 1, padding: '6px', borderRadius: 8, border: 'none', cursor: 'pointer', background: 'linear-gradient(90deg,#16a34a,#22c55e)', color: '#000', fontWeight: 700, fontSize: 11, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, opacity: updating === w.id ? 0.6 : 1 }}
                               >
-                                {updating === w.id ? <Spinner size={12} color="#060d06"/> : <CheckCircle size={11}/>}
+                                {updating === w.id ? <Spinner size={12} color="#000" /> : <CheckCircle size={11} />}
                                 Complete
                               </button>
                               <button
                                 onClick={() => updateStatus(w.id, 'rejected')}
                                 disabled={updating === w.id}
-                                style={{
-                                  flex: 1, padding: '6px', borderRadius: 8, border: 'none', cursor: 'pointer',
-                                  background: '#7f1d1d', color: '#fca5a5',
-                                  fontWeight: 700, fontSize: 11, display: 'flex', alignItems: 'center',
-                                  justifyContent: 'center', gap: 4,
-                                }}
+                                style={{ flex: 1, padding: '6px', borderRadius: 8, border: 'none', cursor: 'pointer', background: '#7f1d1d', color: '#fca5a5', fontWeight: 700, fontSize: 11, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}
                               >
-                                <XCircle size={11}/> Reject
+                                <XCircle size={11} /> Reject
                               </button>
                             </div>
                           </div>
@@ -307,8 +311,8 @@ export default function AdminPage() {
                                 {shortAddr(w.tx_hash, 6, 4)} ↗
                               </a>
                             )}
-                            {w.admin_notes && <p style={{ color: 'var(--muted)', marginTop: 4, fontStyle: 'italic' }}>{w.admin_notes}</p>}
-                            {!w.tx_hash && !w.admin_notes && <span style={{ color: 'var(--muted)' }}>—</span>}
+                            {w.admin_notes && <p style={{ color: 'rgba(134,239,172,0.4)', marginTop: 4, fontStyle: 'italic' }}>{w.admin_notes}</p>}
+                            {!w.tx_hash && !w.admin_notes && <span style={{ color: 'rgba(134,239,172,0.3)' }}>—</span>}
                           </div>
                         )}
                       </td>

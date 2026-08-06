@@ -1,54 +1,17 @@
 export interface TelegramUser {
-  id: number
-  first_name: string
-  last_name?: string
-  username?: string
-  photo_url?: string
+  id: number; first_name: string; last_name?: string; username?: string
 }
-
 export interface User {
-  user_id: number
-  telegram_name: string
-  username: string
-  wallet_address: string
-  bio_balance: number
-  eth_balance: number
+  user_id: number; telegram_name: string; username: string
+  wallet_address: string; bio_balance: number; eth_balance: number
 }
-
 export interface Withdrawal {
-  id: number
-  user_id: number
-  telegram_name: string
-  wallet_address: string
-  bio_amount: number
-  eth_fee_paid: number
-  status: WithdrawalStatus
-  submitted_at: string
-  processed_at: string | null
-  tx_hash: string | null
-  admin_notes: string | null
+  id: number; user_id: number; telegram_name: string
+  wallet_address: string; bio_amount: number; eth_fee_paid: number
+  status: WithdrawalStatus; submitted_at: string
+  processed_at: string|null; tx_hash: string|null; admin_notes: string|null
 }
-
-export type WithdrawalStatus =
-  | 'pending' | 'processing' | 'completed' | 'rejected' | 'cancelled'
-
+export type WithdrawalStatus = 'pending'|'processing'|'completed'|'rejected'|'cancelled'
 export interface Prices { bio: number; eth: number }
-
-export interface SyncResponse {
-  success: boolean
-  user?: User
-  error?: string
-}
-
-export interface DepositResponse {
-  success: boolean
-  pay_address?: string
-  payment_id?: string
-  error?: string
-}
-
-export interface WithdrawResponse {
-  success: boolean
-  withdrawal_id?: number
-  error?: string
-}
+export interface DepositResponse { success:boolean; pay_address?:string; payment_id?:string; error?:string }
+export interface WithdrawResponse { success:boolean; withdrawal_id?:number; error?:string }
