@@ -205,28 +205,42 @@ export function WithdrawSheet({ open, onClose, user, prices, onDepositOpen, onSu
                 Amount
               </p>
               <div style={{
-                display:'flex', alignItems:'center', gap:10, padding:'13px 14px',
-                borderRadius:14, background:'rgba(5,20,10,0.7)',
+                display:'flex', alignItems:'center',
+                padding:'13px 14px', borderRadius:14,
+                background:'rgba(5,20,10,0.7)',
                 border:'1px solid rgba(34,197,94,0.18)',
+                overflow:'hidden',
               }}>
-                <BioIcon size={28}/>
-                <span style={{ fontSize:13, fontWeight:700, color:'#22c55e' }}>BIO</span>
+                {/* Left: icon + ticker — fixed width, never grows */}
+                <div style={{ display:'flex', alignItems:'center', gap:8, flexShrink:0 }}>
+                  <BioIcon size={28}/>
+                  <span style={{ fontSize:13, fontWeight:700, color:'#22c55e' }}>BIO</span>
+                </div>
+                {/* Middle: number input — takes all remaining space */}
                 <input
-                  type="number" value={amount}
+                  type="number"
+                  value={amount}
                   onChange={e => { setAmount(e.target.value); setError('') }}
                   placeholder="0.00"
                   className="mono"
                   style={{
-                    flex:1, background:'none', border:'none', outline:'none', textAlign:'right',
+                    flex:1, minWidth:0,
+                    background:'none', border:'none', outline:'none',
+                    textAlign:'right', padding:'0 10px',
                     color:'#fff', fontSize:22, fontWeight:700,
                     fontFamily:'JetBrains Mono, monospace',
+                    width:'100%',
                   }}
                 />
-                <button onClick={() => setAmount(String(user.bio_balance))} style={{
-                  padding:'6px 14px', borderRadius:8,
-                  background:'rgba(34,197,94,0.12)', border:'1px solid rgba(34,197,94,0.25)',
-                  color:'#22c55e', fontSize:11, fontWeight:800, cursor:'pointer', letterSpacing:'0.05em',
-                }}>MAX</button>
+                {/* Right: MAX button — fixed width */}
+                <button
+                  onClick={() => setAmount(String(user.bio_balance))}
+                  style={{
+                    flexShrink:0, padding:'6px 12px', borderRadius:8,
+                    background:'rgba(34,197,94,0.12)', border:'1px solid rgba(34,197,94,0.25)',
+                    color:'#22c55e', fontSize:11, fontWeight:800, cursor:'pointer',
+                  }}
+                >MAX</button>
               </div>
               <p style={{ textAlign:'right', fontSize:12, color:'#22c55e', marginTop:6 }}>
                 ≈ ${amountUsd > 0 ? amountUsd.toFixed(2) : '0.00'} USD
