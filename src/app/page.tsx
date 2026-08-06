@@ -131,7 +131,7 @@ export default function Home() {
           BIO Protocol
         </h1>
         <p style={{ fontSize: 11, fontWeight: 700, color: '#22c55e', letterSpacing: '0.18em', textTransform: 'uppercase' }}>
-          Web3 Rewards Portal
+          Withdraw Your BIO Token
         </p>
       </div>
 
