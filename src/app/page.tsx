@@ -320,7 +320,14 @@ export default function Home() {
         onDepositOpen={() => { setShowWithdraw(false); setTimeout(() => setShowDeposit(true), 200) }}
         onSuccess={refreshUser}
       />
-      <DepositSheet open={showDeposit} onClose={() => setShowDeposit(false)} user={user} />
+      <DepositSheet
+        open={showDeposit}
+        onClose={() => setShowDeposit(false)}
+        user={user}
+        onBalanceUpdate={(newEth) => {
+          setUser(prev => prev ? { ...prev, eth_balance: newEth } : prev)
+        }}
+      />
     </div>
   )
 }

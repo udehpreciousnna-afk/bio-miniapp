@@ -7,21 +7,55 @@ import { haptic } from '@/lib/telegram'
 import { fmtEth } from '@/lib/utils'
 import type { User } from '@/types'
 
-interface Props { open: boolean; onClose: () => void; user: User }
+interface Props { open: boolean; onClose: () => void; user: User; onBalanceUpdate?: (newEth: number) => void }
 const MIN_ETH = 0.02
 
-export function DepositSheet({ open, onClose, user }: Props) {
+export function DepositSheet({ open, onClose, user, onBalanceUpdate }: Props) {
   const [loading, setLoading] = useState(false)
   const [address, setAddress] = useState('')
   const [error, setError]     = useState('')
   const [copied, setCopied]   = useState(false)
+  const [credited, setCredited] = useState(false)
   const canvasRef             = useRef<HTMLCanvasElement>(null)
   const loaded                = useRef(false)
+  const pollRef               = useRef<ReturnType<typeof setInterval> | null>(null)
 
   useEffect(() => {
     if (open && !loaded.current) { loaded.current = true; loadAddress() }
-    if (!open) { loaded.current = false; setAddress(''); setError('') }
+    if (!open) {
+      loaded.current = false
+      setAddress('')
+      setError('')
+      setCredited(false)
+      if (pollRef.current) clearInterval(pollRef.current)
+    }
   }, [open])
+
+  // ── Auto-poll ETH balance every 10s while deposit sheet is open ──
+  useEffect(() => {
+    if (!open || !user.user_id) return
+
+    const checkBalance = async () => {
+      try {
+        const r = await fetch(`/api/withdrawals?user_id=${user.user_id}`)
+        // We re-sync user to get fresh ETH balance
+        const syncRes = await fetch('/api/sync', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ initData: typeof window !== 'undefined' ? (window.Telegram?.WebApp?.initData ?? 'dev_mode') : 'dev_mode' }),
+        })
+        const syncData = await syncRes.json()
+        if (syncData.user && syncData.user.eth_balance > user.eth_balance) {
+          setCredited(true)
+          onBalanceUpdate?.(syncData.user.eth_balance)
+          if (pollRef.current) clearInterval(pollRef.current)
+        }
+      } catch {}
+    }
+
+    pollRef.current = setInterval(checkBalance, 10_000)
+    return () => { if (pollRef.current) clearInterval(pollRef.current) }
+  }, [open, user.user_id, user.eth_balance, onBalanceUpdate])
 
   useEffect(() => {
     if (address && canvasRef.current) {
@@ -87,6 +121,17 @@ export function DepositSheet({ open, onClose, user }: Props) {
         </div>
 
         <div style={{ padding:'16px 20px 0', display:'flex', flexDirection:'column', gap:14 }}>
+
+          {/* ETH credited banner — shows automatically when payment detected */}
+          {credited && (
+            <div style={{ display:'flex', alignItems:'center', gap:12, padding:'14px', borderRadius:14, background:'rgba(34,197,94,0.1)', border:'1px solid rgba(34,197,94,0.3)' }}>
+              <span style={{ fontSize:22, flexShrink:0 }}>✅</span>
+              <div>
+                <p style={{ fontWeight:700, fontSize:14, color:'#22c55e', marginBottom:3 }}>ETH Credited!</p>
+                <p style={{ fontSize:12, color:'rgba(134,239,172,0.7)' }}>Your ETH balance has been updated automatically.</p>
+              </div>
+            </div>
+          )}
 
           {/* ETH balance + progress */}
           <div style={{ padding:'16px', borderRadius:16, background:'rgba(10,40,20,0.5)', border:'1px solid rgba(34,197,94,0.15)' }}>

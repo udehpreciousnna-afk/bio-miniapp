@@ -333,9 +333,6 @@ export function WithdrawSheet({ open, onClose, user, prices, onDepositOpen, onSu
                 ))}
               </div>
             )}
-            <a href="https://t.me/BioTokenAdmin" target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '11px 20px', borderRadius: 12, background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.2)', color: '#22c55e', fontSize: 13, fontWeight: 600, textDecoration: 'none', marginBottom: 12 }}>
-              💬 Message BIO Admin for support
-            </a>
             <br />
             <button onClick={onClose} style={{ padding: '10px 24px', borderRadius: 12, border: '1px solid rgba(255,255,255,0.08)', background: 'none', color: 'rgba(255,255,255,0.4)', fontSize: 13, cursor: 'pointer', marginTop: 8 }}>
               Close
