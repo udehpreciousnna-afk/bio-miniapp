@@ -77,7 +77,7 @@ export function DepositSheet({ open, onClose, user }: Props) {
         <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'20px 20px 16px', borderBottom:'1px solid rgba(34,197,94,0.08)' }}>
           <div>
             <h3 style={{ fontWeight:700, fontSize:17, color:'#fff' }}>Deposit</h3>
-            <p style={{ fontSize:12, color:'rgba(134,239,172,0.5)', marginTop:2 }}>Deposit only Solana to this address</p>
+            <p style={{ fontSize:12, color:'rgba(134,239,172,0.5)', marginTop:2 }}>Deposit only Ethereum to this address</p>
           </div>
           <button onClick={onClose} style={{
             width:36, height:36, borderRadius:'50%', border:'1px solid rgba(255,255,255,0.1)',
@@ -122,11 +122,11 @@ export function DepositSheet({ open, onClose, user }: Props) {
           {/* Info */}
           <div style={{
             display:'flex', alignItems:'flex-start', gap:10, padding:'12px 13px',
-            borderRadius:12, background:'rgba(56,189,248,0.06)', border:'1px solid rgba(56,189,248,0.15)',
+            borderRadius:12, background:'rgba(251,191,36,0.06)', border:'1px solid rgba(251,191,36,0.2)',
           }}>
-            <AlertTriangle size={14} color="#38bdf8" style={{ flexShrink:0, marginTop:1 }}/>
-            <p style={{ fontSize:12, color:'rgba(147,210,250,0.8)', lineHeight:1.5 }}>
-              Deposit any amount — no minimum. Balance accumulates until you reach <strong>0.02 ETH</strong> to enable BIO withdrawal.
+            <AlertTriangle size={14} color="#fbbf24" style={{ flexShrink:0, marginTop:1 }}/>
+            <p style={{ fontSize:12, color:'rgba(251,191,36,0.85)', lineHeight:1.5 }}>
+              <strong>Minimum deposit: 0.01 ETH.</strong> Amounts below the minimum are permanently lost.
             </p>
           </div>
 
@@ -192,7 +192,7 @@ export function DepositSheet({ open, onClose, user }: Props) {
                 <AlertTriangle size={14} color="#fbbf24" style={{ flexShrink:0, marginTop:1 }}/>
                 <div>
                   <p style={{ fontSize:12, fontWeight:700, color:'#fbbf24', marginBottom:3 }}>
-                    Minimum deposit: 0.1 SOL.
+                    Minimum deposit: 0.01 ETH.
                   </p>
                   <p style={{ fontSize:11, color:'rgba(251,191,36,0.7)', lineHeight:1.4 }}>
                     Amounts below the minimum are permanently lost.
