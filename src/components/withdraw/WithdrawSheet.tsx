@@ -124,28 +124,27 @@ export function WithdrawSheet({ open, onClose, user, prices, onDepositOpen, onSu
             onBack={() => setStep('select')} onClose={onClose}/>
           <div style={{ padding:'8px 20px 24px', display:'flex', flexDirection:'column', gap:16 }}>
 
-            {/* Balance card */}
+            {/* Balance card — matches reference layout */}
             <div style={{
-              display:'flex', alignItems:'center', justifyContent:'space-between',
-              padding:'16px', borderRadius:16,
+              display:'flex', alignItems:'center', gap:14, padding:'16px', borderRadius:16,
               background:'rgba(10,40,20,0.5)', border:'1px solid rgba(34,197,94,0.15)',
             }}>
-              <div style={{ display:'flex', alignItems:'center', gap:12 }}>
-                <BioIcon size={42}/>
-                <div>
-                  <p style={{ fontSize:10, fontWeight:700, color:'rgba(134,239,172,0.5)', letterSpacing:'0.12em', textTransform:'uppercase', marginBottom:4 }}>
-                    Balance
-                  </p>
-                  <div style={{ display:'flex', alignItems:'baseline', gap:8 }}>
-                    <span className="mono" style={{ fontSize:28, fontWeight:800, color:'#fff', lineHeight:1 }}>
-                      {fmtBio(user.bio_balance)}
-                    </span>
-                    <span style={{ fontSize:14, fontWeight:700, color:'#22c55e' }}>BIO</span>
-                  </div>
+              <BioIcon size={42}/>
+              <div style={{ flex:1, minWidth:0 }}>
+                <p style={{ fontSize:10, fontWeight:700, color:'rgba(134,239,172,0.5)', letterSpacing:'0.12em', textTransform:'uppercase', marginBottom:6 }}>
+                  Balance
+                </p>
+                {/* Number + ticker on same line, shrinks to fit */}
+                <div style={{ display:'flex', alignItems:'baseline', gap:10, flexWrap:'nowrap' }}>
+                  <span className="mono" style={{ fontSize:26, fontWeight:800, color:'#fff', lineHeight:1, flexShrink:1, minWidth:0, overflow:'hidden', textOverflow:'ellipsis' }}>
+                    {fmtBio(user.bio_balance)}
+                  </span>
+                  <span style={{ fontSize:14, fontWeight:700, color:'#22c55e', flexShrink:0 }}>BIO</span>
                 </div>
               </div>
-              <div style={{ textAlign:'right' }}>
-                <p style={{ fontSize:13, fontWeight:600, color:'#22c55e' }}>
+              {/* USD on right — won't overflow because left side shrinks */}
+              <div style={{ flexShrink:0, textAlign:'right' }}>
+                <p style={{ fontSize:13, fontWeight:600, color:'#22c55e', whiteSpace:'nowrap' }}>
                   {prices.bio > 0 ? `≈ $${(user.bio_balance * prices.bio).toFixed(2)} USD` : '—'}
                 </p>
               </div>
@@ -275,17 +274,15 @@ export function WithdrawSheet({ open, onClose, user, prices, onDepositOpen, onSu
               padding:'16px', borderRadius:16,
               background:'rgba(10,40,20,0.5)', border:'1px solid rgba(34,197,94,0.15)',
             }}>
-              <div style={{ display:'flex', alignItems:'center', gap:12 }}>
-                <BioIcon size={42}/>
-                <div>
-                  <p style={{ fontSize:10, color:'rgba(134,239,172,0.5)', textTransform:'uppercase', letterSpacing:'0.1em', marginBottom:4 }}>Balance</p>
-                  <div style={{ display:'flex', alignItems:'baseline', gap:8 }}>
-                    <span className="mono" style={{ fontSize:26, fontWeight:800, color:'#fff' }}>{fmtBio(user.bio_balance)}</span>
-                    <span style={{ fontSize:13, fontWeight:700, color:'#22c55e' }}>BIO</span>
-                  </div>
+              <BioIcon size={42}/>
+              <div style={{ flex:1, minWidth:0 }}>
+                <p style={{ fontSize:10, color:'rgba(134,239,172,0.5)', textTransform:'uppercase', letterSpacing:'0.1em', marginBottom:6 }}>Balance</p>
+                <div style={{ display:'flex', alignItems:'baseline', gap:10, flexWrap:'nowrap' }}>
+                  <span className="mono" style={{ fontSize:26, fontWeight:800, color:'#fff', flexShrink:1, minWidth:0, overflow:'hidden', textOverflow:'ellipsis' }}>{fmtBio(user.bio_balance)}</span>
+                  <span style={{ fontSize:13, fontWeight:700, color:'#22c55e', flexShrink:0 }}>BIO</span>
                 </div>
               </div>
-              <p style={{ fontSize:13, color:'#22c55e' }}>≈ ${(user.bio_balance * prices.bio).toFixed(2)} USD</p>
+              <p style={{ fontSize:13, color:'#22c55e', flexShrink:0, whiteSpace:'nowrap' }}>≈ ${(user.bio_balance * prices.bio).toFixed(2)} USD</p>
             </div>
 
             {/* Error card */}
