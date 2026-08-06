@@ -323,7 +323,7 @@ export function WithdrawSheet({ open, onClose, user, prices, onDepositOpen, onSu
               <AlertTriangle size={18} color="#fbbf24" style={{ flexShrink:0, marginTop:1 }}/>
               <div>
                 <p style={{ fontWeight:700, fontSize:13, color:'#fbbf24', marginBottom:5 }}>
-                  Insufficient SOL for network fees
+                  Insufficient ETH for network fees
                 </p>
                 <p style={{ fontSize:12, color:'rgba(251,191,36,0.7)', lineHeight:1.5 }}>
                   You need at least <strong>0.02 ETH</strong> to cover transaction fees.
@@ -361,7 +361,7 @@ export function WithdrawSheet({ open, onClose, user, prices, onDepositOpen, onSu
               display:'flex', alignItems:'center', justifyContent:'center', gap:8,
               boxShadow:'0 0 20px rgba(56,189,248,0.1)',
             }}>
-              ⬡ Insufficient Solana! Topup
+              Insufficient ETH — Top Up
             </button>
           </div>
         </>)}

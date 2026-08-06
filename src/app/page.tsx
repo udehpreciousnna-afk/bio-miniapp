@@ -225,7 +225,9 @@ export default function Home() {
 
         {/* ETH */}
         <div className="glass" style={{ borderRadius: 16, padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 14 }}>
-          <div style={{ width: 44, height: 44, borderRadius: '50%', flexShrink: 0, background: 'radial-gradient(circle at 40%, #1e1b4b, #0f0c29)', border: '1px solid rgba(139,92,246,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>⬡</div>
+          <div style={{ width: 44, height: 44, borderRadius: '50%', flexShrink: 0, background: '#ffffff', border: '1px solid rgba(200,200,200,0.3)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <img src="/eth-logo.png" alt="ETH" style={{ width: '72%', height: '72%', objectFit: 'contain' }} />
+            </div>
           <div style={{ flex: 1, minWidth: 0 }}>
             <p style={{ fontWeight: 700, fontSize: 14, color: '#fff' }}>ETH</p>
             <p style={{ fontSize: 12, color: 'rgba(134,239,172,0.5)', marginTop: 2 }}>
