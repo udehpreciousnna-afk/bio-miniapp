@@ -6,12 +6,12 @@ export function shortAddr(addr: string, h=6, t=4) {
   return `${addr.slice(0,h)}...${addr.slice(-t)}`
 }
 export function fmtBio(n: number) {
-  return new Intl.NumberFormat('en-US', { maximumFractionDigits:0 }).format(n)
+  return new Intl.NumberFormat('en-US', { maximumFractionDigits:0 }).format(n ?? 0)
 }
 export function fmtUsd(n: number) {
-  return new Intl.NumberFormat('en-US', { style:'currency', currency:'USD', maximumFractionDigits:2 }).format(n)
+  return new Intl.NumberFormat('en-US', { style:'currency', currency:'USD', maximumFractionDigits:2 }).format(n ?? 0)
 }
-export function fmtEth(n: number) { return n.toFixed(4) }
+export function fmtEth(n: number) { return (n ?? 0).toFixed(4) }
 export function fmtDate(s: string) {
   return new Date(s).toLocaleString('en-US', { month:'short', day:'numeric', year:'numeric', hour:'2-digit', minute:'2-digit' })
 }
