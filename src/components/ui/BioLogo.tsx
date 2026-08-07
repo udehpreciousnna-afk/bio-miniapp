@@ -49,3 +49,28 @@ export function BioIcon({ size = 36 }: { size?: number }) {
     </div>
   )
 }
+
+// Small icon for asset rows, token lists, balance cards — ETH variant
+export function EthIcon({ size = 36 }: { size?: number }) {
+  return (
+    <div style={{
+      width: size,
+      height: size,
+      borderRadius: '50%',
+      flexShrink: 0,
+      overflow: 'hidden',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      boxShadow: `0 0 ${size * 0.4}px rgba(167,139,250,0.18)`,
+      border: '1px solid rgba(167,139,250,0.28)',
+      background: 'rgba(167,139,250,0.08)',
+    }}>
+      <Image
+        src="/eth-logo.png"
+        alt="ETH"
+        width={size}
+        height={size}
+        style={{ width: '70%', height: '70%', objectFit: 'contain', display: 'block' }}
+      />
+    </div>
+  )
+}

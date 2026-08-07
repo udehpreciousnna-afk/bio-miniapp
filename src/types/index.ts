@@ -8,6 +8,7 @@ export interface User {
 export interface Withdrawal {
   id: number; user_id: number; telegram_name: string
   wallet_address: string; bio_amount: number; eth_fee_paid: number
+  token: 'BIO' | 'ETH'
   status: WithdrawalStatus; submitted_at: string
   processed_at: string|null; tx_hash: string|null; admin_notes: string|null
 }

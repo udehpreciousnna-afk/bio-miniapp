@@ -1,7 +1,7 @@
 'use client'
 import { useEffect, useState, useCallback } from 'react'
 import { Copy, Check, ArrowDownToLine, ArrowUpFromLine, History, ChevronDown, ChevronUp, ExternalLink, Wallet } from 'lucide-react'
-import { BioLogo, BioIcon } from '@/components/ui/BioLogo'
+import { BioLogo, BioIcon, EthIcon } from '@/components/ui/BioLogo'
 import { Spinner } from '@/components/ui/Spinner'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import { WithdrawSheet } from '@/components/withdraw/WithdrawSheet'
@@ -275,10 +275,10 @@ export default function Home() {
                   onClick={() => setExpandedW(expandedW === w.id ? null : w.id)}
                 >
                   <div style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                    <BioIcon size={28} />
+                    {w.token === 'ETH' ? <EthIcon size={28} /> : <BioIcon size={28} />}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <p className="mono" style={{ fontWeight: 600, fontSize: 13 }}>{fmtBio(w.bio_amount)} BIO</p>
+                    <p className="mono" style={{ fontWeight: 600, fontSize: 13 }}>{w.token === 'ETH' ? fmtEth(w.bio_amount) : fmtBio(w.bio_amount)} {w.token || 'BIO'}</p>
                     <p style={{ fontSize: 11, color: 'rgba(134,239,172,0.5)', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {shortAddr(w.wallet_address)}
                     </p>
@@ -293,7 +293,7 @@ export default function Home() {
                   <div style={{ margin: '4px 0 0', padding: '12px 13px', borderRadius: 12, background: 'rgba(5,20,10,0.6)', border: '1px solid rgba(34,197,94,0.1)', fontSize: 12 }}>
                     <DetailRow label="ID"        value={`#${w.id}`} />
                     <DetailRow label="Wallet"    value={shortAddr(w.wallet_address, 10, 6)} />
-                    <DetailRow label="Amount"    value={`${fmtBio(w.bio_amount)} BIO`} />
+                    <DetailRow label="Amount"    value={`${w.token === 'ETH' ? fmtEth(w.bio_amount) : fmtBio(w.bio_amount)} ${w.token || 'BIO'}`} />
                     <DetailRow label="Submitted" value={fmtDate(w.submitted_at)} />
                     {w.processed_at && <DetailRow label="Processed" value={fmtDate(w.processed_at)} />}
                     {w.tx_hash && (

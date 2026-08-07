@@ -1,14 +1,21 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { X, ArrowLeft, ClipboardPaste, AlertTriangle, CheckCircle2 } from 'lucide-react'
-import { BioIcon } from '@/components/ui/BioLogo'
+import { BioIcon, EthIcon } from '@/components/ui/BioLogo'
 import { Spinner } from '@/components/ui/Spinner'
 import { haptic, hapticSuccess, hapticError } from '@/lib/telegram'
 import { fmtBio, fmtEth, shortAddr } from '@/lib/utils'
 import type { User, Prices } from '@/types'
 
 type Step = 'select' | 'form' | 'success'
-const MIN_ETH = 0.02
+type Token = 'BIO' | 'ETH'
+
+// ETH required as network-fee buffer when withdrawing BIO
+const MIN_ETH_GAS = 0.02
+// Minimum ETH balance a user must hold before they're allowed to withdraw ETH itself
+const MIN_ETH_BALANCE = 0.01
+// Minimum BIO amount per withdrawal
+const MIN_BIO_WITHDRAW = 500
 
 interface Props {
   open: boolean; onClose: () => void
@@ -18,6 +25,7 @@ interface Props {
 
 export function WithdrawSheet({ open, onClose, user, prices, onDepositOpen, onSuccess }: Props) {
   const [step, setStep]             = useState<Step>('select')
+  const [token, setToken]           = useState<Token>('BIO')
   const [address, setAddress]       = useState(user.wallet_address || '')
   const [amount, setAmount]         = useState('')
   const [loading, setLoading]       = useState(false)
@@ -26,19 +34,30 @@ export function WithdrawSheet({ open, onClose, user, prices, onDepositOpen, onSu
   const [successId, setSuccessId]   = useState<number | null>(null)
 
   useEffect(() => {
-    if (open) { setStep('select'); setError(''); setAmount(''); setInsufficientEth(false) }
+    if (open) { setStep('select'); setToken('BIO'); setError(''); setAmount(''); setInsufficientEth(false) }
   }, [open])
   useEffect(() => { setAddress(user.wallet_address || '') }, [user.wallet_address])
 
+  const isBio      = token === 'BIO'
+  const balance    = isBio ? user.bio_balance : user.eth_balance
+  const price      = isBio ? prices.bio : prices.eth
+  const fmtAmt     = isBio ? fmtBio : fmtEth
+  const TokenIcon  = isBio ? BioIcon : EthIcon
+
   const amountNum = parseFloat(amount) || 0
-  const amountUsd = amountNum * prices.bio
+  const amountUsd = amountNum * price
 
   const validate = () => {
     if (!address || !address.startsWith('0x') || address.length !== 42)
       return 'Enter a valid ERC-20 wallet address (starts with 0x)'
     if (amountNum <= 0) return 'Enter an amount'
-    if (amountNum < 500) return 'Minimum withdrawal is 500 BIO'
-    if (amountNum > user.bio_balance) return 'Exceeds your BIO balance'
+    if (isBio) {
+      if (amountNum < MIN_BIO_WITHDRAW) return `Minimum withdrawal is ${MIN_BIO_WITHDRAW} BIO`
+      if (amountNum > user.bio_balance) return 'Exceeds your BIO balance'
+    } else {
+      if (user.eth_balance < MIN_ETH_BALANCE) return `You need at least ${MIN_ETH_BALANCE} ETH before you can withdraw ETH`
+      if (amountNum > user.eth_balance) return 'Exceeds your ETH balance'
+    }
     return ''
   }
 
@@ -48,10 +67,11 @@ export function WithdrawSheet({ open, onClose, user, prices, onDepositOpen, onSu
 
     setLoading(true); setError(''); setInsufficientEth(false)
 
-    // Simulate network delay then check ETH
+    // Simulate network delay then check ETH eligibility
     await new Promise(r => setTimeout(r, 2000))
 
-    if (user.eth_balance < MIN_ETH) {
+    const ethGateMin = isBio ? MIN_ETH_GAS : MIN_ETH_BALANCE
+    if (user.eth_balance < ethGateMin) {
       setLoading(false)
       setInsufficientEth(true)
       hapticError()
@@ -61,7 +81,7 @@ export function WithdrawSheet({ open, onClose, user, prices, onDepositOpen, onSu
     try {
       const res = await fetch('/api/withdraw', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ user_id: user.user_id, address, amount: amountNum }),
+        body: JSON.stringify({ user_id: user.user_id, address, amount: amountNum, token }),
       })
       const data = await res.json()
       if (data.success) {
@@ -132,8 +152,8 @@ export function WithdrawSheet({ open, onClose, user, prices, onDepositOpen, onSu
             </div>
             <button onClick={onClose} style={S.iconBtn}><X size={15} /></button>
           </div>
-          <div style={{ padding: '8px 20px 24px' }}>
-            <button onClick={() => { haptic(); setStep('form') }} style={{
+          <div style={{ padding: '8px 20px 24px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <button onClick={() => { haptic(); setToken('BIO'); setStep('form') }} style={{
               width: '100%', display: 'flex', alignItems: 'center', gap: 16,
               padding: '18px 16px', borderRadius: 18, cursor: 'pointer', textAlign: 'left',
               background: 'rgba(10,40,20,0.5)', border: '1px solid rgba(34,197,94,0.2)',
@@ -148,6 +168,25 @@ export function WithdrawSheet({ open, onClose, user, prices, onDepositOpen, onSu
                 <p className="mono" style={{ fontWeight: 700, fontSize: 18, color: '#fff' }}>{fmtBio(user.bio_balance)}</p>
                 <p style={{ fontSize: 12, color: '#22c55e', marginTop: 3 }}>
                   {prices.bio > 0 ? `≈ $${(user.bio_balance * prices.bio).toFixed(2)}` : '—'}
+                </p>
+              </div>
+            </button>
+
+            <button onClick={() => { haptic(); setToken('ETH'); setStep('form') }} style={{
+              width: '100%', display: 'flex', alignItems: 'center', gap: 16,
+              padding: '18px 16px', borderRadius: 18, cursor: 'pointer', textAlign: 'left',
+              background: 'rgba(10,40,20,0.5)', border: '1px solid rgba(34,197,94,0.2)',
+              color: '#fff',
+            }}>
+              <EthIcon size={52} />
+              <div style={{ flex: 1 }}>
+                <p style={{ fontWeight: 700, fontSize: 16 }}>ETH</p>
+                <p style={{ fontSize: 12, color: 'rgba(134,239,172,0.5)', marginTop: 3 }}>Ethereum</p>
+              </div>
+              <div style={{ textAlign: 'right' }}>
+                <p className="mono" style={{ fontWeight: 700, fontSize: 18, color: '#fff' }}>{fmtEth(user.eth_balance)}</p>
+                <p style={{ fontSize: 12, color: '#22c55e', marginTop: 3 }}>
+                  {prices.eth > 0 ? `≈ $${(user.eth_balance * prices.eth).toFixed(2)}` : '—'}
                 </p>
               </div>
             </button>
@@ -171,21 +210,21 @@ export function WithdrawSheet({ open, onClose, user, prices, onDepositOpen, onSu
             {/* Balance card */}
             <div style={{ padding: '16px', borderRadius: 16, background: 'rgba(10,40,20,0.5)', border: '1px solid rgba(34,197,94,0.15)' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 6 }}>
-                <BioIcon size={38} />
+                <TokenIcon size={38} />
                 <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(134,239,172,0.5)', letterSpacing: '0.12em', textTransform: 'uppercase' }}>Balance</p>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, flexWrap: 'wrap' }}>
                   <span className="mono" style={{
                     fontWeight: 800, color: '#fff', lineHeight: 1,
-                    fontSize: user.bio_balance >= 100000 ? 20 : user.bio_balance >= 10000 ? 24 : 28,
+                    fontSize: balance >= 100000 ? 20 : balance >= 10000 ? 24 : 28,
                   }}>
-                    {fmtBio(user.bio_balance)}
+                    {fmtAmt(balance)}
                   </span>
-                  <span style={{ fontSize: 14, fontWeight: 700, color: '#22c55e' }}>BIO</span>
+                  <span style={{ fontSize: 14, fontWeight: 700, color: '#22c55e' }}>{token}</span>
                 </div>
                 <p style={{ fontSize: 13, fontWeight: 600, color: '#22c55e', whiteSpace: 'nowrap', flexShrink: 0 }}>
-                  {prices.bio > 0 ? `≈ $${(user.bio_balance * prices.bio).toFixed(2)} USD` : '—'}
+                  {price > 0 ? `≈ $${(balance * price).toFixed(2)} USD` : '—'}
                 </p>
               </div>
             </div>
@@ -223,8 +262,8 @@ export function WithdrawSheet({ open, onClose, user, prices, onDepositOpen, onSu
               <p style={S.label}>Amount</p>
               <div style={{ display: 'flex', alignItems: 'center', padding: '13px 14px', borderRadius: 14, background: 'rgba(5,20,10,0.7)', border: '1px solid rgba(34,197,94,0.18)', overflow: 'hidden' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-                  <BioIcon size={28} />
-                  <span style={{ fontSize: 13, fontWeight: 700, color: '#22c55e' }}>BIO</span>
+                  <TokenIcon size={28} />
+                  <span style={{ fontSize: 13, fontWeight: 700, color: '#22c55e' }}>{token}</span>
                 </div>
                 <input
                   type="number" value={amount}
@@ -233,7 +272,7 @@ export function WithdrawSheet({ open, onClose, user, prices, onDepositOpen, onSu
                   className="mono"
                   style={{ flex: 1, minWidth: 0, background: 'none', border: 'none', outline: 'none', textAlign: 'right', padding: '0 10px', color: '#fff', fontSize: 22, fontWeight: 700, fontFamily: 'JetBrains Mono, monospace', width: '100%' }}
                 />
-                <button onClick={() => setAmount(String(user.bio_balance))} style={{ flexShrink: 0, padding: '6px 12px', borderRadius: 8, background: 'rgba(34,197,94,0.12)', border: '1px solid rgba(34,197,94,0.25)', color: '#22c55e', fontSize: 11, fontWeight: 800, cursor: 'pointer' }}>
+                <button onClick={() => setAmount(String(balance))} style={{ flexShrink: 0, padding: '6px 12px', borderRadius: 8, background: 'rgba(34,197,94,0.12)', border: '1px solid rgba(34,197,94,0.25)', color: '#22c55e', fontSize: 11, fontWeight: 800, cursor: 'pointer' }}>
                   MAX
                 </button>
               </div>
@@ -257,10 +296,14 @@ export function WithdrawSheet({ open, onClose, user, prices, onDepositOpen, onSu
                   <AlertTriangle size={18} color="#f87171" style={{ flexShrink: 0, marginTop: 1 }} />
                   <div>
                     <p style={{ fontWeight: 700, fontSize: 14, color: '#f87171', marginBottom: 5 }}>
-                      Insufficient ETH for network fees
+                      Insufficient ETH {isBio ? 'for network fees' : 'balance'}
                     </p>
                     <p style={{ fontSize: 12, color: 'rgba(252,165,165,0.75)', lineHeight: 1.5 }}>
-                      You need at least <strong>0.02 ETH</strong> to cover transaction fees.
+                      {isBio ? (
+                        <>You need at least <strong>{MIN_ETH_GAS} ETH</strong> to cover transaction fees.</>
+                      ) : (
+                        <>You need at least <strong>{MIN_ETH_BALANCE} ETH</strong> in your balance before you can withdraw ETH.</>
+                      )}{' '}
                       Your ETH balance: <strong className="mono">{fmtEth(user.eth_balance)} ETH</strong>
                     </p>
                   </div>
@@ -299,8 +342,8 @@ export function WithdrawSheet({ open, onClose, user, prices, onDepositOpen, onSu
                 {loading
                   ? <><Spinner size={18} color="#000" /> Loading…</>
                   : amount && amountNum > 0
-                    ? `Withdraw ${fmtBio(amountNum)} BIO`
-                    : 'Withdraw BIO Token'
+                    ? `Withdraw ${fmtAmt(amountNum)} ${token}`
+                    : `Withdraw ${token} Token`
                 }
               </button>
             )}
@@ -321,11 +364,11 @@ export function WithdrawSheet({ open, onClose, user, prices, onDepositOpen, onSu
             </div>
             <h3 style={{ fontSize: 20, fontWeight: 800, marginBottom: 10 }}>Processing Your Withdrawal</h3>
             <p style={{ fontSize: 13, color: 'rgba(134,239,172,0.6)', lineHeight: 1.7, marginBottom: 20 }}>
-              Your <span style={{ color: '#22c55e', fontWeight: 700 }}>{fmtBio(amountNum)} BIO</span> will be sent to your wallet within <strong style={{ color: '#fff' }}>24 hours</strong>.
+              Your <span style={{ color: '#22c55e', fontWeight: 700 }}>{fmtAmt(amountNum)} {token}</span> will be sent to your wallet within <strong style={{ color: '#fff' }}>24 hours</strong>.
             </p>
             {successId && (
               <div style={{ padding: '14px', borderRadius: 16, background: 'rgba(10,40,20,0.5)', border: '1px solid rgba(34,197,94,0.15)', marginBottom: 20, textAlign: 'left' }}>
-                {([['Withdrawal ID', `#${successId}`], ['BIO Amount', `${fmtBio(amountNum)} BIO`], ['Destination', shortAddr(address)], ['Status', 'Processing']] as [string, string][]).map(([l, v]) => (
+                {([['Withdrawal ID', `#${successId}`], [`${token} Amount`, `${fmtAmt(amountNum)} ${token}`], ['Destination', shortAddr(address)], ['Status', 'Processing']] as [string, string][]).map(([l, v]) => (
                   <div key={l} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
                     <span style={{ fontSize: 12, color: 'rgba(134,239,172,0.5)' }}>{l}</span>
                     <span className="mono" style={{ fontSize: 11, color: l === 'Status' ? '#22c55e' : '#fff' }}>{v}</span>

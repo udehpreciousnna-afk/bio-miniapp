@@ -4,7 +4,7 @@ import { RefreshCw, CheckCircle, XCircle, Users, Clock, TrendingUp } from 'lucid
 import { BioLogo } from '@/components/ui/BioLogo'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import { Spinner } from '@/components/ui/Spinner'
-import { fmtBio, fmtDate, shortAddr } from '@/lib/utils'
+import { fmtBio, fmtEth, fmtDate, shortAddr } from '@/lib/utils'
 import type { Withdrawal, WithdrawalStatus } from '@/types'
 
 interface Stats {
@@ -12,6 +12,7 @@ interface Stats {
   pending_count: number
   completed_count: number
   total_bio_out: number
+  total_eth_out: number
   total_deposits: number
 }
 
@@ -179,6 +180,7 @@ export default function AdminPage() {
               { icon: <Clock size={15} />,        label: 'Pending',       value: stats.pending_count,             color: '#fbbf24'  },
               { icon: <CheckCircle size={15} />,  label: 'Completed',     value: stats.completed_count,           color: '#22c55e'  },
               { icon: <TrendingUp size={15} />,   label: 'BIO Paid Out',  value: `${fmtBio(stats.total_bio_out)}`, color: '#fff'    },
+              { icon: <TrendingUp size={15} />,   label: 'ETH Paid Out',  value: `${fmtEth(stats.total_eth_out)}`, color: '#a78bfa' },
               { icon: <TrendingUp size={15} />,   label: 'ETH Deposited', value: `${stats.total_deposits.toFixed(4)}`, color: '#a78bfa' },
             ].map(s => (
               <div key={s.label} style={S.statCard}>
@@ -259,10 +261,10 @@ export default function AdminPage() {
                         </div>
                       </td>
                       <td style={{ padding: '14px 16px', fontFamily: 'monospace', fontWeight: 700, fontSize: 12, color: '#fff', whiteSpace: 'nowrap' }}>
-                        {fmtBio(w.bio_amount)} BIO
+                        {w.token === 'ETH' ? fmtEth(w.bio_amount) : fmtBio(w.bio_amount)} {w.token || 'BIO'}
                       </td>
                       <td style={{ padding: '14px 16px', fontFamily: 'monospace', fontSize: 11, color: 'rgba(134,239,172,0.5)', whiteSpace: 'nowrap' }}>
-                        {w.eth_fee_paid} ETH
+                        {w.token === 'ETH' ? '— (fee-less)' : `${w.eth_fee_paid} ETH`}
                       </td>
                       <td style={{ padding: '14px 16px' }}>
                         <StatusBadge status={w.status} />
