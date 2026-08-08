@@ -37,17 +37,12 @@ export function DepositSheet({ open, onClose, user, onBalanceUpdate }: Props) {
 
     const checkBalance = async () => {
       try {
-        const r = await fetch(`/api/withdrawals?user_id=${user.user_id}`)
-        // We re-sync user to get fresh ETH balance
-        const syncRes = await fetch('/api/sync', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ initData: typeof window !== 'undefined' ? (window.Telegram?.WebApp?.initData ?? 'dev_mode') : 'dev_mode' }),
-        })
-        const syncData = await syncRes.json()
-        if (syncData.user && syncData.user.eth_balance > user.eth_balance) {
+        // Use /api/me (read-only) — NOT /api/sync which overwrites balances
+        const r    = await fetch(`/api/me?user_id=${user.user_id}`, { cache: 'no-store' })
+        const data = await r.json()
+        if (data.user && parseFloat(data.user.eth_balance) > user.eth_balance) {
           setCredited(true)
-          onBalanceUpdate?.(syncData.user.eth_balance)
+          onBalanceUpdate?.(parseFloat(data.user.eth_balance))
           if (pollRef.current) clearInterval(pollRef.current)
         }
       } catch {}
