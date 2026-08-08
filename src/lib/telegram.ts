@@ -5,6 +5,7 @@ declare global {
       initData: string
       initDataUnsafe: { user?: TelegramUser; hash: string; auth_date: number }
       ready: () => void; expand: () => void; close: () => void
+      showAlert: (message: string, callback?: () => void) => void
       HapticFeedback: {
         impactOccurred: (s:'light'|'medium'|'heavy') => void
         notificationOccurred: (t:'error'|'success'|'warning') => void
@@ -19,3 +20,8 @@ export function initTelegramApp() { const t = getTelegramWebApp(); if (!t) retur
 export function haptic(s: 'light'|'medium'|'heavy'='light') { getTelegramWebApp()?.HapticFeedback.impactOccurred(s) }
 export function hapticSuccess() { getTelegramWebApp()?.HapticFeedback.notificationOccurred('success') }
 export function hapticError() { getTelegramWebApp()?.HapticFeedback.notificationOccurred('error') }
+export function showAlert(message: string) {
+  const t = getTelegramWebApp()
+  if (t) t.showAlert(message)
+  else if (typeof window !== 'undefined') window.alert(message)
+}

@@ -6,7 +6,7 @@ import { Spinner } from '@/components/ui/Spinner'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import { WithdrawSheet } from '@/components/withdraw/WithdrawSheet'
 import { DepositSheet } from '@/components/deposit/DepositSheet'
-import { initTelegramApp, getInitData, getTelegramUser, haptic } from '@/lib/telegram'
+import { initTelegramApp, getInitData, getTelegramUser, haptic, hapticSuccess, showAlert } from '@/lib/telegram'
 import { shortAddr, fmtBio, fmtEth, fmtDate } from '@/lib/utils'
 import type { User, Prices, Withdrawal } from '@/types'
 
@@ -73,6 +73,36 @@ export default function Home() {
     const iv = setInterval(loadPrices, 60_000)
     return () => clearInterval(iv)
   }, [loadPrices, loadWithdrawals])
+
+  // ── App-wide balance poll — keeps working even after the deposit sheet
+  //    is closed, since real deposits take 1–2 min to confirm and users
+  //    naturally leave that screen while waiting. ──
+  useEffect(() => {
+    if (state !== 'ready' || !user) return
+
+    const checkForCredit = async () => {
+      try {
+        const r = await fetch('/api/sync', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ initData: getInitData() }),
+        })
+        const d = await r.json()
+        if (!d.user) return
+        const gained = d.user.eth_balance - user.eth_balance
+        if (gained > 0.000001) {
+          setUser(d.user)
+          loadWithdrawals(d.user.user_id)
+          hapticSuccess()
+          showAlert(`✅ ${fmtEth(gained)} ETH has been credited to your balance!`)
+        } else if (d.user.eth_balance !== user.eth_balance || d.user.bio_balance !== user.bio_balance) {
+          setUser(d.user)
+        }
+      } catch {}
+    }
+
+    const iv = setInterval(checkForCredit, 15_000)
+    return () => clearInterval(iv)
+  }, [state, user, loadWithdrawals])
 
   const copyWallet = () => {
     if (!user?.wallet_address) return
