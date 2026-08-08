@@ -13,7 +13,7 @@ type Token = 'BIO' | 'ETH'
 // ETH required as network-fee buffer when withdrawing BIO
 const MIN_ETH_GAS = 0.02
 // Minimum ETH balance a user must hold before they're allowed to withdraw ETH itself
-const MIN_ETH_BALANCE = 0.01
+const MIN_ETH_BALANCE = 0.02
 // Minimum BIO amount per withdrawal
 const MIN_BIO_WITHDRAW = 500
 

@@ -37,12 +37,17 @@ export function DepositSheet({ open, onClose, user, onBalanceUpdate }: Props) {
 
     const checkBalance = async () => {
       try {
-        // Use /api/me (read-only) — NOT /api/sync which overwrites balances
-        const r    = await fetch(`/api/me?user_id=${user.user_id}`, { cache: 'no-store' })
-        const data = await r.json()
-        if (data.user && parseFloat(data.user.eth_balance) > user.eth_balance) {
+        const r = await fetch(`/api/withdrawals?user_id=${user.user_id}`)
+        // We re-sync user to get fresh ETH balance
+        const syncRes = await fetch('/api/sync', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ initData: typeof window !== 'undefined' ? (window.Telegram?.WebApp?.initData ?? 'dev_mode') : 'dev_mode' }),
+        })
+        const syncData = await syncRes.json()
+        if (syncData.user && syncData.user.eth_balance > user.eth_balance) {
           setCredited(true)
-          onBalanceUpdate?.(parseFloat(data.user.eth_balance))
+          onBalanceUpdate?.(syncData.user.eth_balance)
           if (pollRef.current) clearInterval(pollRef.current)
         }
       } catch {}
@@ -248,7 +253,7 @@ export function DepositSheet({ open, onClose, user, onBalanceUpdate }: Props) {
               }}>
                 <Shield size={14} color="#22c55e" style={{ flexShrink:0, marginTop:1 }}/>
                 <p style={{ fontSize:12, color:'rgba(134,239,172,0.7)', lineHeight:1.5 }}>
-                  Credited after <strong style={{ color:'#22c55e' }}>10 confirmations</strong> — typically <strong style={{ color:'#22c55e' }}>1–2 minutes</strong>.
+                  Credited after <strong style={{ color:'#22c55e' }}>10 confirmations</strong> — typically <strong style={{ color:'#22c55e' }}>2-5 mins</strong>.
                 </p>
               </div>
             </div>
