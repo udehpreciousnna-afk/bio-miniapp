@@ -131,7 +131,7 @@ export default function Home() {
           BIO Protocol
         </h1>
         <p style={{ fontSize: 11, fontWeight: 700, color: '#22c55e', letterSpacing: '0.18em', textTransform: 'uppercase' }}>
-          Withdraw Your BIO Token
+          BIO Withdrawal Portal
         </p>
       </div>
 
@@ -224,7 +224,8 @@ export default function Home() {
         </div>
 
         {/* ETH */}
-        <div className="glass" style={{ borderRadius: 16, padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 14 }}>
+        <div className="glass" style={{ borderRadius: 16, padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 14, cursor: 'pointer' }}
+          onClick={() => { haptic(); setShowWithdraw(true) }}>
           <div style={{ width: 44, height: 44, borderRadius: '50%', flexShrink: 0, background: '#ffffff', border: '1px solid rgba(200,200,200,0.3)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <img src="/eth-logo.png" alt="ETH" style={{ width: '72%', height: '72%', objectFit: 'contain' }} />
             </div>
