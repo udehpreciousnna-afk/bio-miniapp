@@ -1,29 +1,18 @@
-import type { Metadata, Viewport } from 'next'
-import Script from 'next/script'
+import type { Metadata } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'BIO Protocol',
-  description: 'Web3 Rewards Portal',
-}
-export const viewport: Viewport = {
-  width: 'device-width', initialScale: 1,
-  maximumScale: 1, userScalable: false,
-  themeColor: '#000000',
+  title: 'BIO Mining',
+  description: 'Mine BIO, complete tasks, refer friends.',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <head>
-        <Script src="https://telegram.org/js/telegram-web-app.js" strategy="beforeInteractive" />
+        <script src="https://telegram.org/js/telegram-web-app.js" async />
       </head>
-      <body className="no-select">
-        <div className="bg-watermark" />
-        <div style={{ position: 'relative', zIndex: 1, minHeight: '100dvh' }}>
-          {children}
-        </div>
-      </body>
+      <body>{children}</body>
     </html>
   )
 }

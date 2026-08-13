@@ -1,18 +1,43 @@
-export interface TelegramUser {
-  id: number; first_name: string; last_name?: string; username?: string
+export interface AppState {
+  user: { id: number; name: string }
+  bio_balance: number
+  eth_balance: number
+  energy: number
+  energy_max: number
+  energy_refill_seconds: number
+  bio_price_usd: number
 }
-export interface User {
-  user_id: number; telegram_name: string; username: string
-  wallet_address: string; bio_balance: number; eth_balance: number
+
+export type TaskStatus = 'start' | 'claim' | 'done'
+
+export interface Task {
+  id: string
+  title: string
+  handle: string
+  url: string
+  icon: 'telegram' | 'twitter'
+  reward_bio: number
+  reward_eth: number
+  status: TaskStatus
 }
-export interface Withdrawal {
-  id: number; user_id: number; telegram_name: string
-  wallet_address: string; bio_amount: number; eth_fee_paid: number
-  token: 'BIO' | 'ETH'
-  status: WithdrawalStatus; submitted_at: string
-  processed_at: string|null; tx_hash: string|null; admin_notes: string|null
+
+export interface ReferralStats {
+  referral_link: string
+  total_referrals: number
+  active_referrals: number
+  total_earned_bio: number
+  reward_per_invite_bio: number
 }
-export type WithdrawalStatus = 'pending'|'processing'|'completed'|'rejected'|'cancelled'
-export interface Prices { bio: number; eth: number }
-export interface DepositResponse { success:boolean; pay_address?:string; payment_id?:string; error?:string }
-export interface WithdrawResponse { success:boolean; withdrawal_id?:number; error?:string }
+
+export interface Wallet {
+  id: string
+  name: string
+  address: string | null
+}
+
+export interface WithdrawEligibility {
+  eligible: boolean
+  referrals_required: number
+  referrals_current: number
+  airdrop_date: string
+}
