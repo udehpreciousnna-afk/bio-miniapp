@@ -16,6 +16,7 @@ export function DepositSheet({ open, onClose, user, onBalanceUpdate }: Props) {
   const [error, setError]     = useState('')
   const [copied, setCopied]   = useState(false)
   const [credited, setCredited] = useState(false)
+  const [minAmount, setMinAmount] = useState<number | null>(null)
   const canvasRef             = useRef<HTMLCanvasElement>(null)
   const loaded                = useRef(false)
   const pollRef               = useRef<ReturnType<typeof setInterval> | null>(null)
@@ -27,6 +28,7 @@ export function DepositSheet({ open, onClose, user, onBalanceUpdate }: Props) {
       setAddress('')
       setError('')
       setCredited(false)
+      setMinAmount(null)
       if (pollRef.current) clearInterval(pollRef.current)
     }
   }, [open])
@@ -53,7 +55,7 @@ export function DepositSheet({ open, onClose, user, onBalanceUpdate }: Props) {
       } catch {}
     }
 
-    pollRef.current = setInterval(checkBalance, 10_000)
+    pollRef.current = setInterval(checkBalance, 5_000)
     return () => { if (pollRef.current) clearInterval(pollRef.current) }
   }, [open, user.user_id, user.eth_balance, onBalanceUpdate])
 
@@ -74,7 +76,7 @@ export function DepositSheet({ open, onClose, user, onBalanceUpdate }: Props) {
         body: JSON.stringify({ user_id: user.user_id }),
       })
       const data = await res.json()
-      if (data.pay_address) setAddress(data.pay_address)
+      if (data.pay_address) { setAddress(data.pay_address); if (data.min_amount) setMinAmount(data.min_amount) }
       else setError(data.error || 'Failed to generate deposit address. Check your NOWPayments API key.')
     } catch { setError('Network error. Please try again.') }
     finally { setLoading(false) }
@@ -171,7 +173,7 @@ export function DepositSheet({ open, onClose, user, onBalanceUpdate }: Props) {
           }}>
             <AlertTriangle size={14} color="#fbbf24" style={{ flexShrink:0, marginTop:1 }}/>
             <p style={{ fontSize:12, color:'rgba(251,191,36,0.85)', lineHeight:1.5 }}>
-              <strong>Minimum deposit: 0.01 ETH.</strong> Amounts below the minimum are permanently lost.
+              <strong>Minimum deposit: {minAmount ? `${fmtEth(minAmount)} ETH` : 'checking…'}</strong> Amounts below the minimum are permanently lost.
             </p>
           </div>
 
@@ -237,7 +239,7 @@ export function DepositSheet({ open, onClose, user, onBalanceUpdate }: Props) {
                 <AlertTriangle size={14} color="#fbbf24" style={{ flexShrink:0, marginTop:1 }}/>
                 <div>
                   <p style={{ fontSize:12, fontWeight:700, color:'#fbbf24', marginBottom:3 }}>
-                    Minimum deposit: 0.01 ETH.
+                    Minimum deposit: {minAmount ? `${fmtEth(minAmount)} ETH.` : 'checking…'}
                   </p>
                   <p style={{ fontSize:11, color:'rgba(251,191,36,0.7)', lineHeight:1.4 }}>
                     Amounts below the minimum are permanently lost.

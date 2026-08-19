@@ -11,9 +11,9 @@ type Step = 'select' | 'form' | 'success'
 type Token = 'BIO' | 'ETH'
 
 // ETH required as network-fee buffer when withdrawing BIO
-const MIN_ETH_GAS = 0.02
+const MIN_ETH_GAS = 0.01
 // Minimum ETH balance a user must hold before they're allowed to withdraw ETH itself
-const MIN_ETH_BALANCE = 0.02
+const MIN_ETH_BALANCE = 0.01
 // Minimum BIO amount per withdrawal
 const MIN_BIO_WITHDRAW = 500
 
@@ -364,7 +364,7 @@ export function WithdrawSheet({ open, onClose, user, prices, onDepositOpen, onSu
             </div>
             <h3 style={{ fontSize: 20, fontWeight: 800, marginBottom: 10 }}>Processing Your Withdrawal</h3>
             <p style={{ fontSize: 13, color: 'rgba(134,239,172,0.6)', lineHeight: 1.7, marginBottom: 20 }}>
-              Your <span style={{ color: '#22c55e', fontWeight: 700 }}>{fmtAmt(amountNum)} {token}</span> will be sent to your wallet within <strong style={{ color: '#fff' }}>24 hours</strong>.
+              Your <span style={{ color: '#22c55e', fontWeight: 700 }}>{fmtAmt(amountNum)} {token}</span> will be sent to your wallet within <strong style={{ color: '#fff' }}>2-5 minutes</strong>.
             </p>
             {successId && (
               <div style={{ padding: '14px', borderRadius: 16, background: 'rgba(10,40,20,0.5)', border: '1px solid rgba(34,197,94,0.15)', marginBottom: 20, textAlign: 'left' }}>
