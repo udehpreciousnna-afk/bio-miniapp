@@ -6,7 +6,7 @@ import { Spinner } from '@/components/ui/Spinner'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import { WithdrawSheet } from '@/components/withdraw/WithdrawSheet'
 import { DepositSheet } from '@/components/deposit/DepositSheet'
-import { initTelegramApp, getInitData, getTelegramUser, haptic, hapticSuccess, showAlert } from '@/lib/telegram'
+import { initTelegramApp, getInitData, getTelegramUser, haptic } from '@/lib/telegram'
 import { shortAddr, fmtBio, fmtEth, fmtDate } from '@/lib/utils'
 import type { User, Prices, Withdrawal } from '@/types'
 
@@ -74,36 +74,6 @@ export default function Home() {
     return () => clearInterval(iv)
   }, [loadPrices, loadWithdrawals])
 
-  // ── App-wide balance poll — keeps working even after the deposit sheet
-  //    is closed, since real deposits take 1–2 min to confirm and users
-  //    naturally leave that screen while waiting. ──
-  useEffect(() => {
-    if (state !== 'ready' || !user) return
-
-    const checkForCredit = async () => {
-      try {
-        const r = await fetch('/api/sync', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ initData: getInitData() }),
-        })
-        const d = await r.json()
-        if (!d.user) return
-        const gained = d.user.eth_balance - user.eth_balance
-        if (gained > 0.000001) {
-          setUser(d.user)
-          loadWithdrawals(d.user.user_id)
-          hapticSuccess()
-          showAlert(`✅ ${fmtEth(gained)} ETH has been credited to your balance!`)
-        } else if (d.user.eth_balance !== user.eth_balance || d.user.bio_balance !== user.bio_balance) {
-          setUser(d.user)
-        }
-      } catch {}
-    }
-
-    const iv = setInterval(checkForCredit, 15_000)
-    return () => clearInterval(iv)
-  }, [state, user, loadWithdrawals])
-
   const copyWallet = () => {
     if (!user?.wallet_address) return
     navigator.clipboard.writeText(user.wallet_address)
@@ -161,7 +131,7 @@ export default function Home() {
           BIO Protocol
         </h1>
         <p style={{ fontSize: 11, fontWeight: 700, color: '#22c55e', letterSpacing: '0.18em', textTransform: 'uppercase' }}>
-          BIO Withdrawal Portal
+          Withdraw Your BIO Token
         </p>
       </div>
 
@@ -254,8 +224,7 @@ export default function Home() {
         </div>
 
         {/* ETH */}
-        <div className="glass" style={{ borderRadius: 16, padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 14, cursor: 'pointer' }}
-          onClick={() => { haptic(); setShowWithdraw(true) }}>
+        <div className="glass" style={{ borderRadius: 16, padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 14 }}>
           <div style={{ width: 44, height: 44, borderRadius: '50%', flexShrink: 0, background: '#ffffff', border: '1px solid rgba(200,200,200,0.3)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <img src="/eth-logo.png" alt="ETH" style={{ width: '72%', height: '72%', objectFit: 'contain' }} />
             </div>
