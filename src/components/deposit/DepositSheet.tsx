@@ -8,7 +8,7 @@ import { fmtEth } from '@/lib/utils'
 import type { User } from '@/types'
 
 interface Props { open: boolean; onClose: () => void; user: User; onBalanceUpdate?: (newEth: number) => void }
-const MIN_ETH = 0.02
+const MIN_ETH = 0.01
 
 export function DepositSheet({ open, onClose, user, onBalanceUpdate }: Props) {
   const [loading, setLoading] = useState(false)

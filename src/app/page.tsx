@@ -6,7 +6,8 @@ import { Spinner } from '@/components/ui/Spinner'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import { WithdrawSheet } from '@/components/withdraw/WithdrawSheet'
 import { DepositSheet } from '@/components/deposit/DepositSheet'
-import { initTelegramApp, getInitData, getTelegramUser, haptic, hapticSuccess, showAlert } from '@/lib/telegram'
+import { initTelegramApp, getInitData, getTelegramUser, haptic, hapticSuccess } from '@/lib/telegram'
+import { Toast, type ToastData } from '@/components/ui/Toast'
 import { shortAddr, fmtBio, fmtEth, fmtDate } from '@/lib/utils'
 import type { User, Prices, Withdrawal } from '@/types'
 
@@ -23,6 +24,9 @@ export default function Home() {
   const [copied, setCopied]             = useState(false)
   const [expandedW, setExpandedW]       = useState<number | null>(null)
   const [errorMsg, setErrorMsg]         = useState('')
+  const [toasts, setToasts]             = useState<ToastData[]>([])
+  const pushToast = (title: string, message: string) =>
+    setToasts(t => [...t, { id: Date.now(), title, message }])
 
   const loadPrices = useCallback(async () => {
     try { const r = await fetch('/api/prices'); setPrices(await r.json()) } catch {}
@@ -93,14 +97,14 @@ export default function Home() {
           setUser(d.user)
           loadWithdrawals(d.user.user_id)
           hapticSuccess()
-          showAlert(`✅ ${fmtEth(gained)} ETH has been credited to your balance!`)
+          pushToast('ETH Received', `${fmtEth(gained)} ETH has been credited to your balance.`)
         } else if (d.user.eth_balance !== user.eth_balance || d.user.bio_balance !== user.bio_balance) {
           setUser(d.user)
         }
       } catch {}
     }
 
-    const iv = setInterval(checkForCredit, 15_000)
+    const iv = setInterval(checkForCredit, 5_000)
     return () => clearInterval(iv)
   }, [state, user, loadWithdrawals])
 
@@ -153,6 +157,10 @@ export default function Home() {
 
   return (
     <div style={{ maxWidth: 480, margin: '0 auto', paddingBottom: 80 }}>
+
+      {toasts.map((t, i) => (
+        <Toast key={t.id} toast={t} index={i} onDone={() => setToasts(ts => ts.filter(x => x.id !== t.id))} />
+      ))}
 
       {/* ── HEADER ── */}
       <div className="fade-up" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, padding: '36px 24px 24px' }}>
