@@ -8,7 +8,7 @@ import { fmtEth } from '@/lib/utils'
 import type { User } from '@/types'
 
 interface Props { open: boolean; onClose: () => void; user: User; onBalanceUpdate?: (newEth: number) => void }
-const MIN_ETH = 0.015
+const MIN_ETH = 0.01
 
 // ── TEMPORARY: hardcoded deposit address while NOWPayments is down ──
 // TODO: remove HARDCODE_DEPOSIT and restore the /api/deposit call once the NOWPayments glitch is fixed.
@@ -16,7 +16,7 @@ const MIN_ETH = 0.015
 // otherwise the auto-credit polling below will never fire for real deposits.
 const HARDCODE_DEPOSIT = true
 const HARDCODED_ADDRESS = '0xb3ae1b2cac1356f36e8a2db771d205849eec5b72'
-const HARDCODED_MIN_AMOUNT = 0.01 // minimum deposit shown to users
+const HARDCODED_MIN_AMOUNT = 0.005 // minimum deposit shown to users
 
 export function DepositSheet({ open, onClose, user, onBalanceUpdate }: Props) {
   const [loading, setLoading] = useState(false)
