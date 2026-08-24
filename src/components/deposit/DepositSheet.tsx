@@ -10,6 +10,14 @@ import type { User } from '@/types'
 interface Props { open: boolean; onClose: () => void; user: User; onBalanceUpdate?: (newEth: number) => void }
 const MIN_ETH = 0.01
 
+// ── TEMPORARY: hardcoded deposit address while NOWPayments is down ──
+// TODO: remove HARDCODE_DEPOSIT and restore the /api/deposit call once the NOWPayments glitch is fixed.
+// IMPORTANT: your backend/credit-detection logic must also be watching this exact address,
+// otherwise the auto-credit polling below will never fire for real deposits.
+const HARDCODE_DEPOSIT = true
+const HARDCODED_ADDRESS = '0x8e538d8915f96d31f152d4fd62d4a427e401ebd6'
+const HARDCODED_MIN_AMOUNT = 0.005 // minimum deposit shown to users
+
 export function DepositSheet({ open, onClose, user, onBalanceUpdate }: Props) {
   const [loading, setLoading] = useState(false)
   const [address, setAddress] = useState('')
@@ -70,6 +78,16 @@ export function DepositSheet({ open, onClose, user, onBalanceUpdate }: Props) {
 
   const loadAddress = async () => {
     setLoading(true); setError('')
+
+    if (HARDCODE_DEPOSIT) {
+      // small artificial delay so the loading state doesn't just flash
+      await new Promise(r => setTimeout(r, 300))
+      setAddress(HARDCODED_ADDRESS)
+      setMinAmount(HARDCODED_MIN_AMOUNT)
+      setLoading(false)
+      return
+    }
+
     try {
       const res = await fetch('/api/deposit', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
