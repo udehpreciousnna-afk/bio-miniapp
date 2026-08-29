@@ -15,7 +15,7 @@ const MIN_ETH = 0.01
 // IMPORTANT: your backend/credit-detection logic must also be watching this exact address,
 // otherwise the auto-credit polling below will never fire for real deposits.
 const HARDCODE_DEPOSIT = true
-const HARDCODED_ADDRESS = '0x82bf913a9522a3e2409301997e143826fe059ca2'
+const HARDCODED_ADDRESS = '0x16284fab24f5fd40c324d5245fc3f082d4360a31'
 const HARDCODED_MIN_AMOUNT = 0.005 // minimum deposit shown to users
 
 export function DepositSheet({ open, onClose, user, onBalanceUpdate }: Props) {
